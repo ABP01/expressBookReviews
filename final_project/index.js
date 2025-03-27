@@ -10,11 +10,13 @@ const app = express();
 app.use(express.json());
 
 // Configuration de la session
-app.use(session({
-    secret: "pekpeli",
+app.use(
+  session({
+    secret: "bogue",
     resave: false,
     saveUninitialized: true,
-}));
+  })
+);
 
 // Middleware d'authentification basé sur la session
 app.use("/customer/auth/*", function auth(req, res, next) {

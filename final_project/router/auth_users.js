@@ -5,7 +5,7 @@ const regd_users = express.Router();
 
 let users = {};  // Assurez-vous que c'est bien un objet vide
 
-const SECRET_KEY = "pekpeli"; // Remplace par une clé plus sécurisée en production
+const SECRET_KEY = "bogue"; // Remplace par une clé plus sécurisée en production
 
 // Vérifier si le nom d'utilisateur existe déjà
 const isValid = (username) => {
@@ -22,11 +22,15 @@ regd_users.post("/login", (req, res) => {
   const { username, password } = req.body;
 
   if (!username || !password) {
-    return res.status(400).json({ message: "Nom d'utilisateur et mot de passe requis" });
+    return res
+      .status(400)
+      .json({ message: "Nom d'utilisateur et mot de passe requis" });
   }
 
   if (!authenticatedUser(username, password)) {
-    return res.status(401).json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
+    return res
+      .status(401)
+      .json({ message: "Nom d'utilisateur ou mot de passe incorrect" });
   }
 
   // Génération du token JWT
@@ -68,7 +72,36 @@ regd_users.put("/auth/review/:isbn", verifyToken, (req, res) => {
 
   books[isbn].reviews[username] = review;
 
-  return res.status(200).json({ message: "Avis ajouté/modifié avec succès", reviews: books[isbn].reviews });
+  return res.status(200).json({
+    message: "Avis ajouté/modifié avec succès",
+    reviews: books[isbn].reviews,
+  });
+});
+
+// Supprimer un avis sur un livre (utilisateur authentifié uniquement)
+regd_users.delete("/auth/review/:isbn", verifyToken, (req, res) => {
+  const { isbn } = req.params; // Récupérer l'ISBN du livre
+  const username = req.username; // Récupérer le nom d'utilisateur depuis le token
+
+  // Vérifier si le livre existe
+  if (!books[isbn]) {
+    return res.status(404).json({ message: "Livre non trouvé" });
+  }
+
+  // Vérifier si l'utilisateur a laissé un avis sur ce livre
+  if (!books[isbn].reviews[username]) {
+    return res
+      .status(404)
+      .json({ message: "Aucun avis trouvé pour cet utilisateur sur ce livre" });
+  }
+
+  // Supprimer l'avis de l'utilisateur
+  delete books[isbn].reviews[username];
+
+  return res.status(200).json({
+    message: "Avis supprimé avec succès",
+    reviews: books[isbn].reviews,
+  });
 });
 
 module.exports = {
